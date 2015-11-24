@@ -370,7 +370,14 @@ def indentation(logical_line, previous_logical, indent_char,
     Okay: a = 1\nb = 2
     E113: a = 1\n    b = 2
     E116: a = 1\n    # b = 2
+
+    # new error codes for indentation
+    E117: if a == 0:\n        a = 1
+    E118: if a == 0:\n        # change a to 1
+
     """
+
+
     c = 0 if logical_line else 3
     tmpl = "E11%d %s" if logical_line else "E11%d %s (comment)"
     if indent_level % 4:
@@ -378,6 +385,11 @@ def indentation(logical_line, previous_logical, indent_char,
     indent_expect = previous_logical.endswith(':')
     if indent_expect and indent_level <= previous_indent_level:
         yield 0, tmpl % (2 + c, "expected an indented block")
+    elif indent_expect and indent_level > previous_indent_level:
+        if indent_level != previous_indent_level + 4:
+            print "Indent level is " + str(indent_level)
+            print "Previous indent level is " + str(previous_indent_level)
+            yield 0, tmpl % (7 + c, "indentation levels don't match")
     elif not indent_expect and indent_level > previous_indent_level:
         yield 0, tmpl % (3 + c, "unexpected indentation")
 
