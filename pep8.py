@@ -143,6 +143,10 @@ def tabs_or_spaces(physical_line, indent_char):
     """
     indent = INDENT_REGEX.match(physical_line).group(1)
     for offset, char in enumerate(indent):
+        if ("\t" in indent_char):
+            print "TAB"
+        else:
+            print "SPACE"
         if char != indent_char:
             return offset, "E101 indentation contains mixed spaces and tabs"
 
@@ -352,7 +356,7 @@ def missing_whitespace(logical_line):
 
 
 def indentation(logical_line, previous_logical, indent_char,
-                indent_level, previous_indent_level):
+                indent_level, previous_indent_level, physical_line):
     r"""Use 4 spaces per indentation level.
 
     For really old code that you don't want to mess up, you can continue to
@@ -373,23 +377,43 @@ def indentation(logical_line, previous_logical, indent_char,
 
     # new error codes for indentation
     E117: if a == 0:\n        a = 1
-    E118: if a == 0:\n        # change a to 1
+    E120: if a == 0:\n        # a = 1
+
+    118:  
 
     """
 
 
     c = 0 if logical_line else 3
+    indent = INDENT_REGEX.match(physical_line).group(1)
+    print "current is " + str(indent_level)
+    print "previous is " + str(previous_indent_level)
     tmpl = "E11%d %s" if logical_line else "E11%d %s (comment)"
     if indent_level % 4:
         yield 0, tmpl % (1 + c, "indentation is not a multiple of four")
+    else:
+        if ("\t" is str(indent_char) and indent_level is not 0):
+            yield 0, tmpl % (8 + c, "indentation was 4 spaces, expected TAB")
+        else:
+            print str(indent_char) + "asdfasdf"
+    if indent_level % 8 and "\t" in indent:
+        if ("\t" is not indent_char):
+            yield 0, tmpl % (8 + c, "indentation was TAB, expected 4 spaces")
     indent_expect = previous_logical.endswith(':')
     if indent_expect and indent_level <= previous_indent_level:
         yield 0, tmpl % (2 + c, "expected an indented block")
     elif indent_expect and indent_level > previous_indent_level:
+        # If the indent is not 4 spaces
         if indent_level != previous_indent_level + 4:
-            print "Indent level is " + str(indent_level)
-            print "Previous indent level is " + str(previous_indent_level)
-            yield 0, tmpl % (7 + c, "indentation levels don't match")
+            # If the indent is not 8 spaces (potentially tab)
+            if (indent_level) != previous_indent_level + 8:
+                # Then mismatch
+                yield 0, tmpl % (7 + c, "Mismatch in indentation")
+            # Else check if a TAB exists
+            else:
+                # If TAB doesn't exist then mismatch
+                if ("\t" not in indent):
+                    yield 0, tmpl % (7 + c, "Mismatch in indentation")
     elif not indent_expect and indent_level > previous_indent_level:
         yield 0, tmpl % (3 + c, "unexpected indentation")
 
