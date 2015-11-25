@@ -143,10 +143,6 @@ def tabs_or_spaces(physical_line, indent_char):
     """
     indent = INDENT_REGEX.match(physical_line).group(1)
     for offset, char in enumerate(indent):
-        if ("\t" in indent_char):
-            print "TAB"
-        else:
-            print "SPACE"
         if char != indent_char:
             return offset, "E101 indentation contains mixed spaces and tabs"
 
@@ -355,7 +351,7 @@ def missing_whitespace(logical_line):
             yield index, "E231 missing whitespace after '%s'" % char
 
 
-def indentation(logical_line, previous_logical, indent_char,
+def indentation(logical_line, previous_logical, indent_char, initial_indent,
                 indent_level, previous_indent_level, physical_line):
     r"""Use 4 spaces per indentation level.
 
@@ -386,19 +382,10 @@ def indentation(logical_line, previous_logical, indent_char,
 
     c = 0 if logical_line else 3
     indent = INDENT_REGEX.match(physical_line).group(1)
-    print "current is " + str(indent_level)
-    print "previous is " + str(previous_indent_level)
+    tab = "\t"
     tmpl = "E11%d %s" if logical_line else "E11%d %s (comment)"
     if indent_level % 4:
         yield 0, tmpl % (1 + c, "indentation is not a multiple of four")
-    else:
-        if ("\t" is str(indent_char) and indent_level is not 0):
-            yield 0, tmpl % (8 + c, "indentation was 4 spaces, expected TAB")
-        else:
-            print str(indent_char) + "asdfasdf"
-    if indent_level % 8 and "\t" in indent:
-        if ("\t" is not indent_char):
-            yield 0, tmpl % (8 + c, "indentation was TAB, expected 4 spaces")
     indent_expect = previous_logical.endswith(':')
     if indent_expect and indent_level <= previous_indent_level:
         yield 0, tmpl % (2 + c, "expected an indented block")
@@ -412,8 +399,11 @@ def indentation(logical_line, previous_logical, indent_char,
             # Else check if a TAB exists
             else:
                 # If TAB doesn't exist then mismatch
-                if ("\t" not in indent):
-                    yield 0, tmpl % (7 + c, "Mismatch in indentation")
+                if (initial_indent != tab):
+                    yield 0, tmpl % (9 + c, "indentation was TAB, expected 4 spaces")
+        else:
+            if (tab == initial_indent):
+                yield 0, tmpl % (8 + c, "indentation was 4 spaces, expected TAB")
     elif not indent_expect and indent_level > previous_indent_level:
         yield 0, tmpl % (3 + c, "unexpected indentation")
 
@@ -1455,6 +1445,7 @@ class Checker(object):
         self.line_number += 1
         if self.indent_char is None and line[:1] in WHITESPACE:
             self.indent_char = line[0]
+            self.initial_indent = line[0]
         return line
 
     def run_check(self, check, argument_names):
@@ -1610,6 +1601,7 @@ class Checker(object):
             self.check_ast()
         self.line_number = 0
         self.indent_char = None
+        self.initial_indent = None
         self.indent_level = self.previous_indent_level = 0
         self.previous_logical = ''
         self.tokens = []
