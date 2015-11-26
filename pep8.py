@@ -379,31 +379,57 @@ def indentation(logical_line, previous_logical, indent_char, initial_indent,
 
     """
 
-
     c = 0 if logical_line else 3
     indent = INDENT_REGEX.match(physical_line).group(1)
     tab = "\t"
     tmpl = "E11%d %s" if logical_line else "E11%d %s (comment)"
-    if indent_level % 4:
-        yield 0, tmpl % (1 + c, "indentation is not a multiple of four")
     indent_expect = previous_logical.endswith(':')
+
+    expectedTabs = previous_indent_level // 8 + 1
+    expectedSpaces = previous_indent_level + 4
+    numTabs = indent.count("\t")
+    numSpaces = sum(a.isspace() for a in indent) - numTabs
+
+    # Create two scenarios for tabs and spaces
+    # For TAB as initial indentation
+    # if initial_indent == tab and indent_level != 0:
+    #     if tab not in indent:
+    #         yield 0, tmpl % (8 + c, "indentation was %d spaces, expected using TAB" % indent_level)
+    # else:
+    #     if tab in indent:
+    #         yield 0, tmpl % (9 + c, "indentation was using TAB, expected 4 spaces")
+                
+    if indent_level % 4:
+         yield 0, tmpl % (1 + c, "indentation is not a multiple of 4")
+
     if indent_expect and indent_level <= previous_indent_level:
         yield 0, tmpl % (2 + c, "expected an indented block")
     elif indent_expect and indent_level > previous_indent_level:
-        # If the indent is not 4 spaces
-        if indent_level != previous_indent_level + 4:
-            # If the indent is not 8 spaces (potentially tab)
-            if (indent_level) != previous_indent_level + 8:
-                # Then mismatch
-                yield 0, tmpl % (7 + c, "Mismatch in indentation")
-            # Else check if a TAB exists
-            else:
-                # If TAB doesn't exist then mismatch
-                if (initial_indent != tab):
-                    yield 0, tmpl % (9 + c, "indentation was TAB, expected 4 spaces")
+
+        if initial_indent == tab:
+            if ' ' in indent:
+                yield 0, tmpl % (8 + c, "indentation was %d TABs and %d spaces, expected %d TAB" % (numTabs, numSpaces, expectedTabs))
+            elif indent_level != previous_indent_level + 4:              
+                yield 0, tmpl % (8 + c, "indentation was %d TABs, expected %d TAB" % (numTabs, expectedTabs))
         else:
-            if (tab == initial_indent):
-                yield 0, tmpl % (8 + c, "indentation was 4 spaces, expected TAB")
+            if tab in indent:
+                yield 0, tmpl % (8 + c, "indentation was %d TABs and %d spaces, expected %d spaces" % (numTabs, numSpaces, expectedSpaces))
+            elif indent_level != previous_indent_level + 4:
+                yield 0, tmpl % (9 + c, "indentation was %d spaces, expected %d spaces" % (indent_level, expectedSpaces))
+        # # If the indent is not 4 spaces
+        # if indent_level != previous_indent_level + 4:
+        #     # If the indent is not 8 spaces (potentially tab)
+        #     if (indent_level) != previous_indent_level + 8:
+        #         # Then mismatch
+        #         yield 0, tmpl % (7 + c, "Mismatch in indentation")
+        #     # Else check if a TAB exists
+        #     else:
+        #         # If TAB doesn't exist then mismatch
+        #         if (initial_indent != tab):
+        #             yield 0, tmpl % (9 + c, "indentation was TAB, expected 4 spaces")
+        # else:
+        #     if (tab == initial_indent):
+        #         yield 0, tmpl % (8 + c, "indentation was 4 spaces, expected TAB")
     elif not indent_expect and indent_level > previous_indent_level:
         yield 0, tmpl % (3 + c, "unexpected indentation")
 
@@ -1244,7 +1270,7 @@ def expand_indent(line):
     result = 0
     for char in line:
         if char == '\t':
-            result = result // 8 * 8 + 8
+            result = result // 4 * 4 + 4
         elif char == ' ':
             result += 1
         else:

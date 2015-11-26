@@ -1,5 +1,4 @@
 if True:
-	print 'yes'
+        print 'yes'
 else:
-    print 'no'
     print 'no'
