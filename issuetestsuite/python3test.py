@@ -1,8 +1,6 @@
 #: TAB ERROR TEST
 for a in 'abc':
 	for b in 'xyz':
-	     print a # indented with 5 spaces
-				 # "TAB ERROR: TAB INDENTATION EXPECTED; 5 SPACES WERE USED"
+	     print a  # "TAB ERROR: 2 tabs indentation expected; indentation was 1 tabs and 5 spaces"
 				
-    print b # indented with 4 spaces
 	

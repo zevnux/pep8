@@ -385,9 +385,9 @@ def indentation(logical_line, previous_logical, indent_char, initial_indent,
     tmpl = "E11%d %s" if logical_line else "E11%d %s (comment)"
     indent_expect = previous_logical.endswith(':')
 
-    expectedTabs = previous_indent_level // 8 + 1
+    expectedTabs = previous_indent_level // 4 + 1
     expectedSpaces = previous_indent_level + 4
-    numTabs = indent.count("\t")
+    numTabs = indent.count("\t") 
     numSpaces = sum(a.isspace() for a in indent) - numTabs
 
     # Create two scenarios for tabs and spaces
@@ -408,14 +408,14 @@ def indentation(logical_line, previous_logical, indent_char, initial_indent,
 
         if initial_indent == tab:
             if ' ' in indent:
-                yield 0, tmpl % (8 + c, "indentation was %d TABs and %d spaces, expected %d TAB" % (numTabs, numSpaces, expectedTabs))
+                yield 0, tmpl % (8 + c, "TAB ERROR: %d tabs indentation expected; indentation was %d tabs and %d spaces" % (expectedTabs, numTabs, numSpaces))
             elif indent_level != previous_indent_level + 4:              
-                yield 0, tmpl % (8 + c, "indentation was %d TABs, expected %d TAB" % (numTabs, expectedTabs))
+                yield 0, tmpl % (8 + c, "TAB ERROR: %d tabs indentation expected; indentation was %d tabs" % (expectedTabs, numTabs))
         else:
             if tab in indent:
-                yield 0, tmpl % (8 + c, "indentation was %d TABs and %d spaces, expected %d spaces" % (numTabs, numSpaces, expectedSpaces))
+                yield 0, tmpl % (8 + c, "SPACE ERROR: %d spaces indentation expected; indentation was %d tabs and %d spaces" % (expectedSpaces, numTabs, numSpaces))
             elif indent_level != previous_indent_level + 4:
-                yield 0, tmpl % (9 + c, "indentation was %d spaces, expected %d spaces" % (indent_level, expectedSpaces))
+                yield 0, tmpl % (9 + c, "SPACE ERROR: %d SPACES indentation expected; indentation was %d spaces" % (expectedSpaces, indent_level))
         # # If the indent is not 4 spaces
         # if indent_level != previous_indent_level + 4:
         #     # If the indent is not 8 spaces (potentially tab)
