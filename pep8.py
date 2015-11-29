@@ -390,15 +390,6 @@ def indentation(logical_line, previous_logical, indent_char, initial_indent,
     numTabs = indent.count("\t") 
     numSpaces = sum(a.isspace() for a in indent) - numTabs
 
-    # Create two scenarios for tabs and spaces
-    # For TAB as initial indentation
-    # if initial_indent == tab and indent_level != 0:
-    #     if tab not in indent:
-    #         yield 0, tmpl % (8 + c, "indentation was %d spaces, expected using TAB" % indent_level)
-    # else:
-    #     if tab in indent:
-    #         yield 0, tmpl % (9 + c, "indentation was using TAB, expected 4 spaces")
-                
     if indent_level % 4:
          yield 0, tmpl % (1 + c, "indentation is not a multiple of 4")
 
@@ -416,20 +407,7 @@ def indentation(logical_line, previous_logical, indent_char, initial_indent,
                 yield 0, tmpl % (8 + c, "SPACE ERROR: %d spaces indentation expected; indentation was %d tabs and %d spaces" % (expectedSpaces, numTabs, numSpaces))
             elif indent_level != previous_indent_level + 4:
                 yield 0, tmpl % (9 + c, "SPACE ERROR: %d SPACES indentation expected; indentation was %d spaces" % (expectedSpaces, indent_level))
-        # # If the indent is not 4 spaces
-        # if indent_level != previous_indent_level + 4:
-        #     # If the indent is not 8 spaces (potentially tab)
-        #     if (indent_level) != previous_indent_level + 8:
-        #         # Then mismatch
-        #         yield 0, tmpl % (7 + c, "Mismatch in indentation")
-        #     # Else check if a TAB exists
-        #     else:
-        #         # If TAB doesn't exist then mismatch
-        #         if (initial_indent != tab):
-        #             yield 0, tmpl % (9 + c, "indentation was TAB, expected 4 spaces")
-        # else:
-        #     if (tab == initial_indent):
-        #         yield 0, tmpl % (8 + c, "indentation was 4 spaces, expected TAB")
+        
     elif not indent_expect and indent_level > previous_indent_level:
         yield 0, tmpl % (3 + c, "unexpected indentation")
 
