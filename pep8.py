@@ -138,8 +138,8 @@ def tabs_or_spaces(physical_line, indent_char):
     warnings about code that illegally mixes tabs and spaces.  When using -tt
     these warnings become errors.  These options are highly recommended!
 
-    Okay: if a == 0:\n        a = 1\n        b = 1
-    E101: if a == 0:\n        a = 1\n\tb = 1
+    Okay: if a == 0:\n    a = 1
+    E101: if a == 0:\n  \ta = 1
     """
     indent = INDENT_REGEX.match(physical_line).group(1)
     for offset, char in enumerate(indent):
@@ -371,11 +371,12 @@ def indentation(logical_line, previous_logical, indent_char, initial_indent,
     E113: a = 1\n    b = 2
     E116: a = 1\n    # b = 2
 
-    # new error codes for indentation
-    E117: if a == 0:\n        a = 1
-    E120: if a == 0:\n        # a = 1
+    Okay: if a == 0:\n    a = 1\nif a == 1:\n    a = 1
+    W191: if a == 0:\n\ta = 1\nif a == 1:\n\ta = 1
 
-    118:  
+    E117: if a == 0:\n\ta = 1\nif a == 1:\n    a = 1
+
+    E118: # if a == 0:\n    a = 1\nif a == 1:\n\ta = 1
 
     """
 
@@ -387,27 +388,35 @@ def indentation(logical_line, previous_logical, indent_char, initial_indent,
 
     expectedTabs = previous_indent_level // 4 + 1
     expectedSpaces = previous_indent_level + 4
-    numTabs = indent.count("\t") 
+    numTabs = indent.count("\t")
     numSpaces = sum(a.isspace() for a in indent) - numTabs
 
     if indent_level % 4:
-         yield 0, tmpl % (1 + c, "indentation is not a multiple of 4")
+        yield 0, tmpl % (1 + c, "indentation is not a multiple of 4")
 
     if indent_expect and indent_level <= previous_indent_level:
         yield 0, tmpl % (2 + c, "expected an indented block")
     elif indent_expect and indent_level > previous_indent_level:
-
         if initial_indent == tab:
             if ' ' in indent:
-                yield 0, tmpl % (8 + c, "TAB ERROR: %d tabs indentation expected; indentation was %d tabs and %d spaces" % (expectedTabs, numTabs, numSpaces))
-            elif indent_level != previous_indent_level + 4:              
-                yield 0, tmpl % (8 + c, "TAB ERROR: %d tabs indentation expected; indentation was %d tabs" % (expectedTabs, numTabs))
+                yield 0, tmpl % (7, "TAB ERROR: %d tabs indentation "
+                                 "expected; indentation was %d tabs and "
+                                 "%d spaces" %
+                                 (expectedTabs, numTabs, numSpaces))
+            elif indent_level != previous_indent_level + 4:
+                yield 0, tmpl % (7, "TAB ERROR: %d tabs indentation "
+                                 "expected; indentation was %d tabs" %
+                                 (expectedTabs, numTabs))
         else:
             if tab in indent:
-                yield 0, tmpl % (8 + c, "SPACE ERROR: %d spaces indentation expected; indentation was %d tabs and %d spaces" % (expectedSpaces, numTabs, numSpaces))
+                yield 0, tmpl % (8, "SPACE ERROR: %d spaces indentation "
+                                 "expected; indentation was %d tabs and "
+                                 "%d spaces" %
+                                 (expectedSpaces, numTabs, numSpaces))
             elif indent_level != previous_indent_level + 4:
-                yield 0, tmpl % (9 + c, "SPACE ERROR: %d SPACES indentation expected; indentation was %d spaces" % (expectedSpaces, indent_level))
-        
+                yield 0, tmpl % (8, "SPACE ERROR: %d SPACES indentation "
+                                 "expected; indentation was %d spaces" %
+                                 (expectedSpaces, indent_level))
     elif not indent_expect and indent_level > previous_indent_level:
         yield 0, tmpl % (3 + c, "unexpected indentation")
 
@@ -1237,11 +1246,11 @@ def expand_indent(line):
     >>> expand_indent('    ')
     4
     >>> expand_indent('\t')
-    8
+    4
     >>> expand_indent('       \t')
     8
     >>> expand_indent('        \t')
-    16
+    12
     """
     if '\t' not in line:
         return len(line) - len(line.lstrip())
