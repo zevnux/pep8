@@ -1,0 +1,11 @@
+What you want to contribute to this project in NO more than TWO sentences
+-We want to solve the issue of indentation detection for pep8 where it cannot give a correct error for certain indentation scenarios.
+-For these indentation issues, we also want to verbosely show what the indentation issue is.
+
+A list of all implementation/improvements as CONCISE as possible. Indicate briefly where it is implemented
+All code changes other than tests done in the Improvedpep8.py file
+- Modified the indentation() function and added the correct indentation detection and verbosity for misused indentation
+    - Added new initial_indent variable on line 1617, used to detect the initial indentation type
+      - Search all instances of initial_indent to see where it is used and how
+- Modified the expand_indent() function to not make tabs multiples of 8 in order to fix this functionality
+- Added all tests in the issuetestsuite folder
