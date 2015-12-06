@@ -1,5 +1,6 @@
 What you want to contribute to this project in NO more than TWO sentences
--We want to solve the issue of indentation detection for pep8 where it cannot give a correct error for certain indentation scenarios.
+-We want to solve issue #430 of pep8, for which is indicating pep8 does not indicate the exact type of indentation error
+for certain indentation scenarios.
 -For these indentation issues, we also want to verbosely show what the indentation issue is.
 
 A list of all implementation/improvements as CONCISE as possible. Indicate briefly where it is implemented
